@@ -21,6 +21,12 @@
 #include "statwriter.hh"
 #undef STATWRITER_NAMESPACE
 
+#ifdef WIN32
+#define PATH_SEPARATOR "\\"
+#else
+#define PATH_SEPARATOR "/"
+#endif
+
 using namespace CouchKVStoreDirectoryUtilities;
 
 static const int MUTATION_FAILED = -1;
@@ -445,7 +451,7 @@ vbucket_map_t CouchKVStore::listPersistedVbuckets()
             std::stringstream rev, vbid;
             rev  << itr->second;
             vbid << itr->first;
-            std::string fileName = dbname + "/" + vbid.str() + ".couch." +
+            std::string fileName = dbname + PATH_SEPARATOR + vbid.str() + ".couch." +
                 rev.str();
             getLogger()->log(EXTENSION_LOG_WARNING, NULL,
                              "Warning: failed to open database file, name=%s error=%s\n",
@@ -627,7 +633,7 @@ bool CouchKVStore::setVBucketState(uint16_t vbucketId, vbucket_state vbstate,
     int rev;
 
     id << vbucketId;
-    dbFileName = dbname + "/" + id.str() + ".couch";
+    dbFileName = dbname + PATH_SEPARATOR + id.str() + ".couch";
 
     if (newfile) {
         fileRev = 1; // create a db file with rev = 1
@@ -653,7 +659,7 @@ bool CouchKVStore::setVBucketState(uint16_t vbucketId, vbucket_state vbstate,
                            (uint64_t)COUCHSTORE_OPEN_FLAG_CREATE, &newFileRev);
         if (errorCode != COUCHSTORE_SUCCESS) {
             std::stringstream filename;
-            filename << dbname << "/" << vbucketId << ".couch." << fileRev;
+            filename << dbname << PATH_SEPARATOR << vbucketId << ".couch." << fileRev;
             ++st.numVbSetFailure;
             getLogger()->log(EXTENSION_LOG_WARNING, NULL,
                              "Warning: failed to open database, name=%s error=%s\n",
@@ -873,7 +879,7 @@ void CouchKVStore::loadDB(shared_ptr<LoadCallback> cb, bool keysOnly,
             std::stringstream rev, vbid;
             rev  << itr->second;
             vbid << itr->first;
-            std::string dbName = dbname + "/" + vbid.str() + ".couch." +
+            std::string dbName = dbname + PATH_SEPARATOR + vbid.str() + ".couch." +
                                  rev.str();
             getLogger()->log(EXTENSION_LOG_WARNING, NULL,
                              "Warning: failed to open database, name=%s error=%s",
@@ -949,7 +955,7 @@ bool CouchKVStore::getDbFile(uint16_t vbucketId,
                              std::string &dbFileName)
 {
     std::stringstream fileName;
-    fileName << dbname << "/" << vbucketId << ".couch";
+    fileName << dbname << PATH_SEPARATOR << vbucketId << ".couch";
     std::map<uint16_t, int>::iterator itr;
 
     itr = dbFileMap.find(vbucketId);
@@ -1026,7 +1032,7 @@ void CouchKVStore::updateDbFileMap(uint16_t vbucketId, int newFileRev,
 static std::string getDBFileName(const std::string &dbname, uint16_t vbid)
 {
     std::stringstream ss;
-    ss << dbname << "/" << vbid << ".couch";
+    ss << dbname << PATH_SEPARATOR << vbid << ".couch";
     return ss.str();
 }
 
@@ -1035,7 +1041,7 @@ static std::string getDBFileName(const std::string &dbname,
                                  uint16_t rev)
 {
     std::stringstream ss;
-    ss << dbname << "/" << vbid << ".couch." << rev;
+    ss << dbname << PATH_SEPARATOR << vbid << ".couch." << rev;
     return ss.str();
 }
 
@@ -1122,7 +1128,7 @@ void CouchKVStore::populateFileNameMap(std::vector<std::string> &filenames)
         size_t secondDot = filename.rfind(".");
         std::string nameKey = filename.substr(0, secondDot);
         size_t firstDot = nameKey.rfind(".");
-        size_t firstSlash = nameKey.rfind("/");
+        size_t firstSlash = nameKey.rfind(PATH_SEPARATOR);
 
         std::string revNumStr = filename.substr(secondDot + 1);
         int revNum = atoi(revNumStr.c_str());

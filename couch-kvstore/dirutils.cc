@@ -51,7 +51,11 @@ namespace CouchKVStoreDirectoryUtilities
             while ((de = readdir(dp)) != NULL) {
                 if (strncmp(de->d_name, name.c_str(), name.length()) == 0) {
                     string entry = dir;
+#                   ifdef WIN32
+                    entry.append("\\");
+#                   else
                     entry.append("/");
+#                   endif
                     entry.append(de->d_name);
                     files.push_back(entry);
                 }
@@ -76,7 +80,11 @@ namespace CouchKVStoreDirectoryUtilities
             while ((de = readdir(dp)) != NULL) {
                 if (name.empty() || strstr(de->d_name, name.c_str()) != NULL) {
                     string entry = dir;
+#                   ifdef WIN32
+                    entry.append("\\");
+#                   else
                     entry.append("/");
+#                   endif
                     entry.append(de->d_name);
                     files.push_back(entry);
                 }
