@@ -1997,19 +1997,11 @@ EventuallyPersistentStore::flushOneDelOrSet(const queued_item &qi,
     }
 
     if (isDirty) {
-        if (!v->isPendingBySeqno()) {
-            int dirtyAge = ep_current_time() - queued;
-            stats.dirtyAgeHisto.add(dirtyAge * 1000000);
-            stats.dirtyAge.set(dirtyAge);
-            stats.dirtyAgeHighWat.set(std::max(stats.dirtyAge.get(),
-                                               stats.dirtyAgeHighWat.get()));
-        } else {
-            isDirty = false;
-            v->reDirty();
-            vb->rejectQueue.push(qi);
-            ++vb->opsReject;
-            return NULL;
-        }
+        int dirtyAge = ep_current_time() - queued;
+        stats.dirtyAgeHisto.add(dirtyAge * 1000000);
+        stats.dirtyAge.set(dirtyAge);
+        stats.dirtyAgeHighWat.set(std::max(stats.dirtyAge.get(),
+                                           stats.dirtyAgeHighWat.get()));
     }
 
     KVStore *rwUnderlying = getRWUnderlying(qi->getVBucketId());

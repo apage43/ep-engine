@@ -206,6 +206,7 @@ public:
         value = itm.getValue();
         deleted = false;
         flags = itm.getFlags();
+        bySeqno = itm.getId();
 
         cas = itm.getCas();
         exptime = itm.getExptime();
@@ -765,6 +766,7 @@ public:
         assert(visitors == 0);
         values = static_cast<StoredValue**>(calloc(size, sizeof(StoredValue*)));
         mutexes = new Mutex[n_locks];
+        lastSeqNum = 0;
         activeState = true;
     }
 
@@ -977,9 +979,12 @@ public:
             if (nru <= MAX_NRU_VALUE) {
                 v->setNRUValue(nru);
             }
+            itm.setId(++lastSeqNum);
+            v->setBySeqno(itm.getId());
         } else if (cas != 0) {
             rv = NOT_FOUND;
         } else {
+            itm.setId(++lastSeqNum);
             if (!hasMetaData) {
                 itm.setCas();
             }
@@ -1131,6 +1136,7 @@ public:
                     v->clearBySeqno();
                 }
             }
+            v->setBySeqno(++lastSeqNum);
             v->del(stats, *this, use_meta);
 
             updateMaxDeletedRevSeqno(v->getRevSeqno());
@@ -1393,6 +1399,7 @@ private:
     Atomic<size_t>       numItems;
     Atomic<size_t>       numResizes;
     Atomic<size_t>       numTempItems;
+    Atomic<uint64_t>     lastSeqNum;
     bool                 activeState;
 
     static size_t                 defaultNumBuckets;

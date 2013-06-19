@@ -219,6 +219,7 @@ CouchRequest::CouchRequest(const Item &it, uint64_t rev, CouchRequestCallback &c
     memcpy(meta, &cas, 8);
     memcpy(meta + 8, &exptime, 4);
     memcpy(meta + 12, &flags, 4);
+    dbDocInfo.db_seq = it.getId();
     dbDocInfo.rev_meta.buf = reinterpret_cast<char *>(meta);
     dbDocInfo.rev_meta.size = COUCHSTORE_METADATA_SIZE;
     dbDocInfo.rev_seq = it.getSeqno();
@@ -1396,8 +1397,9 @@ couchstore_error_t CouchKVStore::saveDocs(uint16_t vbid, uint64_t rev, Doc **doc
             }
 
             hrtime_t cs_begin = gethrtime();
+            uint64_t flags = COMPRESS_DOC_BODIES | COUCHSTORE_SEQUENCE_AS_IS;
             errCode = couchstore_save_documents(db, docs, docinfos, docCount,
-                                                COMPRESS_DOC_BODIES);
+                                                flags);
             st.saveDocsHisto.add((gethrtime() - cs_begin) / 1000);
             if (errCode != COUCHSTORE_SUCCESS) {
                 LOG(EXTENSION_LOG_WARNING,
