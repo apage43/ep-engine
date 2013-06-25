@@ -50,8 +50,8 @@ typedef enum {
 class QueuedItem : public RCValue {
 public:
     QueuedItem(const std::string &k, const uint16_t vb,
-               enum queue_operation o, const uint64_t revSeq = 1)
-        : key(k), revSeqno(revSeq), queued(ep_current_time()),
+               enum queue_operation o, const uint64_t revSeqno = 1)
+        : key(k), revSeqno(revSeqno), queued(ep_current_time()),
           op(static_cast<uint16_t>(o)), vbucket(vb)
     {
         ObjectRegistry::onCreateQueuedItem(this);
